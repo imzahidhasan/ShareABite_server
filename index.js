@@ -5,6 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 //middlewares
+app.use(express.json())
 app.use(
   cors({
     origin: ["http://localhost:5173"],
@@ -51,8 +52,14 @@ async function run() {
     });
     app.get('/details/:id', async (req, res) => {
       const id = req.params.id
-      const food = await available_food_collection.findOne({ _id: new ObjectId(id) })
-      res.send(food)
+      const foodData = await available_food_collection.findOne({ _id: new ObjectId(id) })
+      res.send(foodData);
+    })
+    app.post('/add_food', async (req, res) => {
+      const foodData = req.body
+      console.log(foodData);
+      const result=await available_food_collection.insertOne(foodData)
+      res.send(result)
     })
   } finally {
   }
