@@ -67,6 +67,15 @@ async function run() {
         .toArray();
       res.send(data);
     });
+    app.post("/search_name/:foodName", async (req, res) => {
+      const searchText = req.params.foodName;
+      const data = await available_food_collection
+        .find({
+          foodName: searchText,
+        })
+        .toArray();
+      res.send(data);
+    });
   } finally {
   }
 }
