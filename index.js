@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -49,6 +49,11 @@ async function run() {
       res.send(data)
 
     });
+    app.get('/details/:id', async (req, res) => {
+      const id = req.params.id
+      const food = await available_food_collection.findOne({ _id: new ObjectId(id) })
+      res.send(food)
+    })
   } finally {
   }
 }
