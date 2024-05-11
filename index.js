@@ -5,7 +5,7 @@ const cors = require("cors");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 //middlewares
-app.use(express.json())
+app.use(express.json());
 app.use(
   cors({
     origin: ["http://localhost:5173"],
@@ -15,8 +15,7 @@ app.use(
 
 //API
 
-const uri =
-  `mongodb+srv://${process.env.db_user}:${process.env.db_pass}@cluster0.ek5qasv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.db_user}:${process.env.db_pass}@cluster0.ek5qasv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -35,11 +34,10 @@ async function run() {
     const available_food_collection = client
       .db("ShareABite")
       .collection("available_food");
-    
-    app.get("/available_food", async (req, res) => {
-      const data = await available_food_collection.find().toArray()
-      res.send(data)
 
+    app.get("/available_food", async (req, res) => {
+      const data = await available_food_collection.find().toArray();
+      res.send(data);
     });
     app.get("/available_food/highest_quantity", async (req, res) => {
       const data = await available_food_collection
@@ -47,20 +45,28 @@ async function run() {
         .sort({ quantity: -1 })
         .limit(6)
         .toArray();
-      res.send(data)
-
+      res.send(data);
     });
-    app.get('/details/:id', async (req, res) => {
-      const id = req.params.id
-      const foodData = await available_food_collection.findOne({ _id: new ObjectId(id) })
+    app.get("/details/:id", async (req, res) => {
+      const id = req.params.id;
+      const foodData = await available_food_collection.findOne({
+        _id: new ObjectId(id),
+      });
       res.send(foodData);
-    })
-    app.post('/add_food', async (req, res) => {
-      const foodData = req.body
+    });
+    app.post("/add_food", async (req, res) => {
+      const foodData = req.body;
       console.log(foodData);
-      const result=await available_food_collection.insertOne(foodData)
-      res.send(result)
-    })
+      const result = await available_food_collection.insertOne(foodData);
+      res.send(result);
+    });
+    app.get("/manage_post/:email", async (req, res) => {
+      const email = req.params.email;
+      const data = await available_food_collection
+        .find({ donatorEmail: email })
+        .toArray();
+      res.send(data);
+    });
   } finally {
   }
 }
