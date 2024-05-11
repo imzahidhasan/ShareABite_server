@@ -67,12 +67,26 @@ async function run() {
         .toArray();
       res.send(data);
     });
-    app.post("/search_name/:foodName", async (req, res) => {
+    app.get("/search_name/:foodName", async (req, res) => {
       const searchText = req.params.foodName;
       const data = await available_food_collection
         .find({
-          foodName: searchText,
+          foodName: { $regex: searchText, $options: "i" },
         })
+        .toArray();
+      res.send(data);
+    });
+    app.get("/sort_acceding", async (req, res) => {
+      const data = await available_food_collection
+        .find()
+        .sort({ expiryDateTime: 1 })
+        .toArray();
+      res.send(data);
+    });
+    app.get("/sort_descending", async (req, res) => {
+      const data = await available_food_collection
+        .find()
+        .sort({ expiryDateTime: -1 })
         .toArray();
       res.send(data);
     });
