@@ -90,6 +90,23 @@ async function run() {
         .toArray();
       res.send(data);
     });
+
+    app.delete("/delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await available_food_collection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
+    app.put("/update/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedData = req.body;
+      const result = await available_food_collection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updatedData }
+      );
+      res.send(result)
+    });
   } finally {
   }
 }
