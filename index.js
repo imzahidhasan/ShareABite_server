@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+var jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
 require("dotenv").config();
@@ -8,7 +9,11 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [
+      "http://localhost:5173",
+      "https://shareabite-db536.web.app",
+      "https://shareabite-db536.firebaseapp.com",
+    ],
     credentials: true,
   })
 );
@@ -35,13 +40,30 @@ async function run() {
       .db("ShareABite")
       .collection("available_food");
 
-    app.get("/available_food", async (req, res) => {
-      const data = await available_food_collection.find().toArray();
-      res.send(data);
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    };
+
+    app.post("/jwt", async (req, res) => {
+      try {
+        const user = req.body;
+        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+          expiresIn: "10h",
+        });
+        res.cookie("token", token, cookieOptions).send({ success: true });
+      } catch (error) {
+        console.error("Error generating token:", error);
+        res
+          .status(500)
+          .send({ success: false, error: "Internal Server Error" });
+      }
     });
+
     app.get("/available_food/highest_quantity", async (req, res) => {
       const data = await available_food_collection
-        .find()
+        .find({ status: "available" })
         .sort({ quantity: -1 })
         .limit(6)
         .toArray();
@@ -56,7 +78,6 @@ async function run() {
     });
     app.post("/add_food", async (req, res) => {
       const foodData = req.body;
-      console.log(foodData);
       const result = await available_food_collection.insertOne(foodData);
       res.send(result);
     });
@@ -105,7 +126,25 @@ async function run() {
         { _id: new ObjectId(id) },
         { $set: updatedData }
       );
-      res.send(result)
+      res.send(result);
+    });
+    app.put("/update_request_data", async (req, res) => {
+      const data = req.body;
+      const result = await available_food_collection.updateOne(
+        { _id: new ObjectId(data.foodID) },
+        { $set: data }
+      );
+      res.send(result);
+    });
+    app.get("/request_data/:email", async (req, res) => {
+      const email = req.params.email;
+      const data = await available_food_collection
+        .find({
+          userEmail: email,
+          status: "requested",
+        })
+        .toArray();
+      res.send(data);
     });
   } finally {
   }
