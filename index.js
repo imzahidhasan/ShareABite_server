@@ -57,6 +57,9 @@ async function run() {
     const available_food_collection = client
       .db("ShareABite")
       .collection("available_food");
+    const review_collection = client
+      .db("ShareABite")
+      .collection("review");
 
     const cookieOptions = {
       httpOnly: true,
@@ -139,7 +142,7 @@ async function run() {
     });
     app.get("/sort_acceding", async (req, res) => {
       const data = await available_food_collection
-        .find()
+        .find({ status: "available" })
         .sort({ expiryDateTime: 1 })
         .toArray();
       res.send(data);
@@ -152,7 +155,7 @@ async function run() {
       res.send(data);
     });
 
-    app.delete("/delete/:id", logger, async (req, res) => {
+    app.delete("/delete/:id",  async (req, res) => {
       const id = req.params.id;
       const result = await available_food_collection.deleteOne({
         _id: new ObjectId(id),
@@ -186,6 +189,15 @@ async function run() {
         .toArray();
       res.send(data);
     });
+    app.get('/reviews', async (req,res) => {
+     const data = await review_collection.find().toArray()
+      res.send(data)
+    })
+    app.post('/give_review', async (req, res) => {
+      const data = req.body
+     const result= await review_collection.insertOne(data)
+      res.send(result)
+    })
   } finally {
   }
 }
